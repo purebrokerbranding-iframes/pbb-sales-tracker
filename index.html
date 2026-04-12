@@ -191,6 +191,40 @@
   .pay-none{color:var(--muted);font-style:italic;}
   .amount-cell{font-weight:700;color:var(--gold);}
 
+  /* ── CASH COLLECTION ── */
+  .cash-section{background:var(--card-bg);border:1px solid var(--card-border);border-radius:var(--radius-lg);padding:20px;position:relative;overflow:hidden;}
+  .cash-section::before{content:'';position:absolute;top:0;left:0;right:0;height:2px;background:linear-gradient(90deg,var(--green),var(--gold),var(--red));}
+  .cash-section h3{font-size:.72rem;text-transform:uppercase;letter-spacing:1.5px;color:var(--gold);font-weight:700;margin-bottom:16px;display:flex;align-items:center;gap:8px;}
+  .cash-summary{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin-bottom:20px;}
+  .cash-stat{background:rgba(10,24,27,0.6);border:1px solid var(--card-border);border-radius:var(--radius);padding:16px;text-align:center;position:relative;overflow:hidden;}
+  .cash-stat::before{content:'';position:absolute;top:0;left:0;right:0;height:2px;}
+  .cash-stat.cs-collected::before{background:var(--green);}
+  .cash-stat.cs-outstanding::before{background:var(--red);}
+  .cash-stat.cs-rate::before{background:var(--gold);}
+  .cash-stat.cs-pipeline::before{background:var(--teal);}
+  .cash-stat .cs-label{font-size:.6rem;text-transform:uppercase;letter-spacing:1.5px;color:var(--muted);font-weight:600;margin-bottom:6px;}
+  .cash-stat .cs-value{font-size:1.5rem;font-weight:800;line-height:1;}
+  .cash-stat.cs-collected .cs-value{color:var(--green);}
+  .cash-stat.cs-outstanding .cs-value{color:var(--red);}
+  .cash-stat.cs-rate .cs-value{color:var(--gold);}
+  .cash-stat.cs-pipeline .cs-value{color:var(--teal-light);}
+  .cash-stat .cs-sub{font-size:.58rem;color:var(--muted);margin-top:4px;}
+  .cash-table-wrap{overflow-x:auto;max-height:360px;overflow-y:auto;}
+  .cash-table{width:100%;border-collapse:collapse;font-size:.73rem;}
+  .cash-table thead{position:sticky;top:0;z-index:2;}
+  .cash-table th{background:var(--dark4);color:var(--gold);font-size:.58rem;text-transform:uppercase;letter-spacing:1.2px;padding:9px 10px;text-align:center;font-weight:700;border-bottom:2px solid var(--teal-dim);white-space:nowrap;}
+  .cash-table th:first-child,.cash-table td:first-child{text-align:left;}
+  .cash-table td{padding:9px 10px;border-bottom:1px solid var(--card-border);text-align:center;white-space:nowrap;}
+  .cash-table tr:hover td{background:rgba(0,110,132,0.06);}
+  .pay-status{display:inline-flex;align-items:center;gap:4px;padding:3px 10px;border-radius:4px;font-size:.6rem;font-weight:700;text-transform:uppercase;letter-spacing:.5px;}
+  .pay-status.status-paid{background:var(--green-dim);color:var(--green);}
+  .pay-status.status-due{background:var(--red-dim);color:var(--red);animation:alert-pulse 2s ease-in-out infinite;}
+  .pay-status.status-na{background:rgba(163,176,179,0.06);color:rgba(163,176,179,0.4);font-style:italic;}
+  @keyframes alert-pulse{0%,100%{opacity:1;}50%{opacity:.5;}}
+  .cash-amt{font-weight:700;color:var(--gold);font-size:.72rem;}
+  .cash-date{font-size:.62rem;color:var(--muted);}
+  .cash-client-name{font-weight:600;color:var(--white);}
+
   /* FOOTER */
   .dash-footer{text-align:center;padding:16px;font-size:.58rem;color:var(--muted);letter-spacing:1.5px;text-transform:uppercase;opacity:.4;}
 
@@ -202,8 +236,8 @@
   .load-text{font-size:.72rem;color:var(--muted);text-transform:uppercase;letter-spacing:2px;}
 
   /* RESPONSIVE */
-  @media(max-width:1200px){.kpi-row{grid-template-columns:repeat(3,1fr);}.charts-row{grid-template-columns:1fr 1fr;}.charts-row-2{grid-template-columns:1fr;}}
-  @media(max-width:768px){.kpi-row{grid-template-columns:repeat(2,1fr);}.charts-row,.charts-row-2{grid-template-columns:1fr;}.filters-bar{flex-direction:column;align-items:stretch;}.filter-quick{margin-left:0;}}
+  @media(max-width:1200px){.kpi-row{grid-template-columns:repeat(3,1fr);}.charts-row{grid-template-columns:1fr 1fr;}.charts-row-2{grid-template-columns:1fr;}.cash-summary{grid-template-columns:repeat(2,1fr);}}
+  @media(max-width:768px){.kpi-row{grid-template-columns:repeat(2,1fr);}.charts-row,.charts-row-2{grid-template-columns:1fr;}.filters-bar{flex-direction:column;align-items:stretch;}.filter-quick{margin-left:0;}.cash-summary{grid-template-columns:1fr;}}
 </style>
 </head>
 <body>
@@ -329,6 +363,50 @@
         <div class="kpi-label">Avg Deal Size</div>
         <div class="kpi-value" id="kpi-avg">$0</div>
         <div class="kpi-sub" id="kpi-avg-sub">—</div>
+      </div>
+    </div>
+
+    <!-- CASH COLLECTION -->
+    <div class="cash-section">
+      <h3>💰 Cash Collection Tracker</h3>
+      <div class="cash-summary">
+        <div class="cash-stat cs-collected">
+          <div class="cs-label">Cash Collected</div>
+          <div class="cs-value" id="cash-collected">$0</div>
+          <div class="cs-sub" id="cash-collected-sub">—</div>
+        </div>
+        <div class="cash-stat cs-outstanding">
+          <div class="cs-label">Outstanding Balance</div>
+          <div class="cs-value" id="cash-outstanding">$0</div>
+          <div class="cs-sub" id="cash-outstanding-sub">—</div>
+        </div>
+        <div class="cash-stat cs-rate">
+          <div class="cs-label">Collection Rate</div>
+          <div class="cs-value" id="cash-rate">0%</div>
+          <div class="cs-sub" id="cash-rate-sub">—</div>
+        </div>
+        <div class="cash-stat cs-pipeline">
+          <div class="cs-label">Total Pipeline</div>
+          <div class="cs-value" id="cash-pipeline">$0</div>
+          <div class="cs-sub" id="cash-pipeline-sub">—</div>
+        </div>
+      </div>
+      <div class="cash-table-wrap">
+        <table class="cash-table">
+          <thead>
+            <tr>
+              <th>Client</th>
+              <th>Total Quoted</th>
+              <th>Deposit</th>
+              <th>Deposit Status</th>
+              <th>Approval</th>
+              <th>Approval Status</th>
+              <th>Final</th>
+              <th>Final Status</th>
+            </tr>
+          </thead>
+          <tbody id="cash-tbody"></tbody>
+        </table>
       </div>
     </div>
 
@@ -534,6 +612,7 @@ document.querySelectorAll('.qf-btn').forEach(btn => {
 /* ═══ RENDER ═══ */
 function renderAll() {
   renderKPIs();
+  renderCashCollection();
   renderActivityChart();
   renderOutcomesChart();
   renderTiersChart();
@@ -583,6 +662,89 @@ function renderKPIs() {
   document.getElementById('kpi-rate-sub').textContent = closed + ' of ' + total + ' calls';
   document.getElementById('kpi-avg').textContent = fmtMoney(avg);
   document.getElementById('kpi-avg-sub').textContent = closed > 0 ? 'Per closed deal' : '—';
+}
+
+/* ── CASH COLLECTION ── */
+function renderCashCollection() {
+  // Only show rows that have a Total Quoted value (actual deals)
+  const dealRows = filteredRows.filter(r => parseCurrency(r['Total Quoted']) > 0);
+
+  let totalCollected = 0;
+  let totalOutstanding = 0;
+  let totalPipeline = 0;
+  let paidCount = 0;
+  let totalStages = 0;
+
+  dealRows.forEach(r => {
+    const dep = parseCurrency(r['Deposit Amount']);
+    const app = parseCurrency(r['Approval Amount']);
+    const fin = parseCurrency(r['Final Amount']);
+    const depPaid = isPaid(r['Deposit Paid']);
+    const appPaid = isPaid(r['Approval Paid']);
+    const finPaid = isPaid(r['Final Paid']);
+
+    if (dep > 0) { totalStages++; if (depPaid) { totalCollected += dep; paidCount++; } else { totalOutstanding += dep; } }
+    if (app > 0) { totalStages++; if (appPaid) { totalCollected += app; paidCount++; } else { totalOutstanding += app; } }
+    if (fin > 0) { totalStages++; if (finPaid) { totalCollected += fin; paidCount++; } else { totalOutstanding += fin; } }
+    totalPipeline += parseCurrency(r['Total Quoted']);
+  });
+
+  const collectionRate = (totalCollected + totalOutstanding) > 0 ? ((totalCollected / (totalCollected + totalOutstanding)) * 100).toFixed(1) : 0;
+  const dueAlerts = totalStages - paidCount;
+
+  document.getElementById('cash-collected').textContent = fmtMoney(totalCollected);
+  document.getElementById('cash-collected-sub').textContent = paidCount + ' payments received';
+  document.getElementById('cash-outstanding').textContent = fmtMoney(totalOutstanding);
+  document.getElementById('cash-outstanding-sub').textContent = dueAlerts > 0 ? dueAlerts + ' payment' + (dueAlerts !== 1 ? 's' : '') + ' due' : 'All caught up';
+  document.getElementById('cash-rate').textContent = collectionRate + '%';
+  document.getElementById('cash-rate-sub').textContent = paidCount + ' of ' + totalStages + ' stages paid';
+  document.getElementById('cash-pipeline').textContent = fmtMoney(totalPipeline);
+  document.getElementById('cash-pipeline-sub').textContent = dealRows.length + ' deal' + (dealRows.length !== 1 ? 's' : '');
+
+  // Render per-client breakdown
+  const tbody = document.getElementById('cash-tbody');
+  const sorted = [...dealRows].sort((a, b) => {
+    const da = parseDate(a), db = parseDate(b);
+    if (!da) return 1; if (!db) return -1;
+    return db - da;
+  });
+
+  tbody.innerHTML = sorted.map(r => {
+    const name = ((r['First Name'] || '') + ' ' + (r['Last Name'] || '')).trim() || '—';
+    const totalQ = r['Total Quoted'] || '—';
+    const dep = parseCurrency(r['Deposit Amount']);
+    const app = parseCurrency(r['Approval Amount']);
+    const fin = parseCurrency(r['Final Amount']);
+    const depPaid = isPaid(r['Deposit Paid']);
+    const appPaid = isPaid(r['Approval Paid']);
+    const finPaid = isPaid(r['Final Paid']);
+    const depDate = r['Deposit Paid Date'] || '';
+    const appDate = r['Approval Paid Date'] || '';
+    const finDate = r['Final Paid Date'] || '';
+
+    return `<tr>
+      <td class="cash-client-name">${name}</td>
+      <td class="cash-amt">${totalQ}</td>
+      <td class="cash-amt">${dep > 0 ? fmtMoney(dep) : '<span style="color:var(--muted)">—</span>'}</td>
+      <td>${payBadge(dep, depPaid, depDate)}</td>
+      <td class="cash-amt">${app > 0 ? fmtMoney(app) : '<span style="color:var(--muted)">—</span>'}</td>
+      <td>${payBadge(app, appPaid, appDate)}</td>
+      <td class="cash-amt">${fin > 0 ? fmtMoney(fin) : '<span style="color:var(--muted)">—</span>'}</td>
+      <td>${payBadge(fin, finPaid, finDate)}</td>
+    </tr>`;
+  }).join('') || '<tr><td colspan="8" style="color:var(--muted);text-align:center;padding:20px;">No deals with quoted amounts</td></tr>';
+}
+
+function isPaid(val) {
+  if (!val) return false;
+  const v = String(val).trim().toLowerCase();
+  return v === 'yes' || v === 'true' || v === 'paid' || v === '1';
+}
+
+function payBadge(amount, paid, date) {
+  if (amount <= 0) return '<span class="pay-status status-na">N/A</span>';
+  if (paid) return '<span class="pay-status status-paid">✓ Paid</span>' + (date ? '<div class="cash-date">' + date + '</div>' : '');
+  return '<span class="pay-status status-due">⚠ Due</span>';
 }
 
 function isToday(d) {
