@@ -644,7 +644,8 @@ function parseDuration(d) {
 /* ── KPIs ── */
 function renderKPIs() {
   const total = filteredRows.length;
-  const proposals = filteredRows.filter(r => ['Proposal Sent','Overview Sent','Overview Sent — Follow-Up Booked'].includes(r['Outcome']) || r['Outcome']?.toLowerCase().includes('proposal')).length;
+  const notProposal = ['reschedule','no show','not a fit','no interest'];
+  const proposals = filteredRows.filter(r => { const o = (r['Outcome']||'').toLowerCase(); return !notProposal.some(np => o.includes(np)); }).length;
   const closed = filteredRows.filter(r => r['Outcome']?.toLowerCase().includes('closed') || r['Outcome']?.toLowerCase().includes('won')).length;
   const revenue = filteredRows.reduce((sum, r) => sum + parseCurrency(r['Total Quoted'] || r['Amount Closed']), 0);
   const rate = total > 0 ? ((closed / total) * 100).toFixed(1) : 0;
