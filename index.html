@@ -460,6 +460,8 @@
               <th>Duration</th>
               <th>Agent</th>
               <th>Follow-Up</th>
+              <th>Reason Didn't Close</th>
+              <th>Monthly Plan Interest</th>
             </tr>
           </thead>
           <tbody id="client-tbody"></tbody>
@@ -877,7 +879,7 @@ function chartOpts(yTitle) {
 function renderFunnel() {
   const stages = [
     { label: 'Total Calls', filter: () => true, color: '#3a9bb0' },
-    { label: 'Proposals', filter: r => ['Proposal Sent','Overview Sent','Overview Sent — Follow-Up Booked'].includes(r['Outcome']) || (r['Outcome']||'').toLowerCase().includes('proposal'), color: '#cdbc8b' },
+    { label: 'Proposals', filter: r => { const o = (r['Outcome']||'').toLowerCase(); return !['reschedule','no show','not a fit','no interest'].some(np => o.includes(np)); }, color: '#cdbc8b' },
     { label: 'Follow-Ups', filter: r => r['Follow-Up Date'] && r['Follow-Up Date'] !== '', color: '#fbbf24' },
     { label: 'Closed', filter: r => (r['Outcome']||'').toLowerCase().includes('closed') || (r['Outcome']||'').toLowerCase().includes('won'), color: '#34d399' }
   ];
@@ -943,6 +945,8 @@ function renderClientTable() {
       <td>${r['Duration'] || '—'}</td>
       <td>${r['Agent'] || '—'}</td>
       <td>${r['Follow-Up Date'] || '—'}</td>
+      <td>${r["Reasons Didn't Close"] || '—'}</td>
+      <td>${r['Monthly Plan Interest'] || '—'}</td>
     </tr>`;
   }).join('');
 }
