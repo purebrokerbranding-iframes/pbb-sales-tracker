@@ -220,6 +220,8 @@
   .pay-status.status-paid{background:var(--green-dim);color:var(--green);}
   .pay-status.status-due{background:var(--red-dim);color:var(--red);animation:alert-pulse 2s ease-in-out infinite;}
   .pay-status.status-na{background:rgba(163,176,179,0.06);color:rgba(163,176,179,0.4);font-style:italic;}
+  .pay-status.status-notclosed{background:var(--orange-dim);color:var(--orange);}
+  .pay-status.status-followup{background:rgba(251,191,36,0.1);color:#fbbf24;}
   @keyframes alert-pulse{0%,100%{opacity:1;}50%{opacity:.5;}}
   .cash-amt{font-weight:700;color:var(--gold);font-size:.72rem;}
   .cash-date{font-size:.62rem;color:var(--muted);}
@@ -677,6 +679,7 @@ function renderCashCollection() {
   let totalPipeline = 0;
   let paidCount = 0;
   let totalStages = 0;
+  let dueAlerts = 0;
 
   dealRows.forEach(r => {
     const dep = parseCurrency(r['Deposit Amount']);
@@ -685,15 +688,17 @@ function renderCashCollection() {
     const depPaid = isPaid(r['Deposit Paid']);
     const appPaid = isPaid(r['Approval Paid']);
     const finPaid = isPaid(r['Final Paid']);
+    const o = (r['Outcome'] || '').toLowerCase();
+    const isClosed = o.includes('closed') || o.includes('won');
 
-    if (dep > 0) { totalStages++; if (depPaid) { totalCollected += dep; paidCount++; } else { totalOutstanding += dep; } }
-    if (app > 0) { totalStages++; if (appPaid) { totalCollected += app; paidCount++; } else { totalOutstanding += app; } }
-    if (fin > 0) { totalStages++; if (finPaid) { totalCollected += fin; paidCount++; } else { totalOutstanding += fin; } }
+    // Only count unpaid amounts as "outstanding" if the deal is actually closed
+    if (dep > 0) { totalStages++; if (depPaid) { totalCollected += dep; paidCount++; } else if (isClosed) { totalOutstanding += dep; dueAlerts++; } }
+    if (app > 0) { totalStages++; if (appPaid) { totalCollected += app; paidCount++; } else if (isClosed) { totalOutstanding += app; dueAlerts++; } }
+    if (fin > 0) { totalStages++; if (finPaid) { totalCollected += fin; paidCount++; } else if (isClosed) { totalOutstanding += fin; dueAlerts++; } }
     totalPipeline += parseCurrency(r['Total Quoted']);
   });
 
   const collectionRate = (totalCollected + totalOutstanding) > 0 ? ((totalCollected / (totalCollected + totalOutstanding)) * 100).toFixed(1) : 0;
-  const dueAlerts = totalStages - paidCount;
 
   document.getElementById('cash-collected').textContent = fmtMoney(totalCollected);
   document.getElementById('cash-collected-sub').textContent = paidCount + ' payments received';
@@ -724,16 +729,19 @@ function renderCashCollection() {
     const depDate = r['Deposit Paid Date'] || '';
     const appDate = r['Approval Paid Date'] || '';
     const finDate = r['Final Paid Date'] || '';
+    const outcome = r['Outcome'] || '';
+    const reason = r["Reasons Didn't Close"] || '';
+    const followup = r['Follow-Up Date'] || '';
 
     return `<tr>
       <td class="cash-client-name">${name}</td>
       <td class="cash-amt">${totalQ}</td>
       <td class="cash-amt">${dep > 0 ? fmtMoney(dep) : '<span style="color:var(--muted)">—</span>'}</td>
-      <td>${payBadge(dep, depPaid, depDate)}</td>
+      <td>${payBadge(dep, depPaid, depDate, outcome, reason, followup)}</td>
       <td class="cash-amt">${app > 0 ? fmtMoney(app) : '<span style="color:var(--muted)">—</span>'}</td>
-      <td>${payBadge(app, appPaid, appDate)}</td>
+      <td>${payBadge(app, appPaid, appDate, outcome, reason, followup)}</td>
       <td class="cash-amt">${fin > 0 ? fmtMoney(fin) : '<span style="color:var(--muted)">—</span>'}</td>
-      <td>${payBadge(fin, finPaid, finDate)}</td>
+      <td>${payBadge(fin, finPaid, finDate, outcome, reason, followup)}</td>
     </tr>`;
   }).join('') || '<tr><td colspan="8" style="color:var(--muted);text-align:center;padding:20px;">No deals with quoted amounts</td></tr>';
 }
@@ -744,9 +752,22 @@ function isPaid(val) {
   return v === 'yes' || v === 'true' || v === 'paid' || v === '1';
 }
 
-function payBadge(amount, paid, date) {
+function payBadge(amount, paid, date, outcome, reason, followup) {
   if (amount <= 0) return '<span class="pay-status status-na">N/A</span>';
   if (paid) return '<span class="pay-status status-paid">✓ Paid</span>' + (date ? '<div class="cash-date">' + date + '</div>' : '');
+  // If deal isn't closed, don't show "Due" — show contextual status
+  const o = (outcome || '').toLowerCase();
+  const isClosed = o.includes('closed') || o.includes('won');
+  if (!isClosed) {
+    // Has a reason it didn't close = explicitly not closed
+    if (reason && reason.trim() && reason !== '—') return '<span class="pay-status status-notclosed">Not Closed</span>';
+    // Proposal/Overview sent but waiting on customer
+    if (o.includes('proposal') || o.includes('overview')) return '<span class="pay-status status-followup">Awaiting Agreement</span>';
+    // Has a follow-up date = needs follow-up
+    if (followup && followup.trim()) return '<span class="pay-status status-followup">Needs Follow-Up</span>';
+    // Generic non-closed state
+    return '<span class="pay-status status-notclosed">Not Closed</span>';
+  }
   return '<span class="pay-status status-due">⚠ Due</span>';
 }
 
