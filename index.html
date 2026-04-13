@@ -736,8 +736,10 @@ function getDealId(r) {
 }
 
 function isLostDeal(r) {
+  if (deadDeals.has(getDealId(r))) return true;
   const o = (r['Outcome'] || '').toLowerCase();
-  return deadDeals.has(getDealId(r)) || o.includes('not a fit') || o.includes('no interest') || o.includes('lost') || o.includes('dead');
+  // Only auto-lost if no overview/proposal was sent AND outcome is explicitly dead
+  return o.includes('not a fit') || o.includes('no show');
 }
 
 function markDead(dealId) {
@@ -841,20 +843,15 @@ function isPaid(val) {
 function payBadge(amount, paid, date, outcome, reason, followup) {
   if (amount <= 0) return '<span class="pay-status status-na">N/A</span>';
   if (paid) return '<span class="pay-status status-paid">✓ Paid</span>' + (date ? '<div class="cash-date">' + date + '</div>' : '');
-  // If deal isn't closed, don't show "Due" — show contextual status
   const o = (outcome || '').toLowerCase();
   const isClosed = o.includes('closed') || o.includes('won');
-  if (!isClosed) {
-    // Has a reason it didn't close = explicitly not closed
-    if (reason && reason.trim() && reason !== '—') return '<span class="pay-status status-notclosed">Not Closed</span>';
-    // Proposal/Overview sent but waiting on customer
-    if (o.includes('proposal') || o.includes('overview')) return '<span class="pay-status status-followup">Awaiting Agreement</span>';
-    // Has a follow-up date = needs follow-up
-    if (followup && followup.trim()) return '<span class="pay-status status-followup">Needs Follow-Up</span>';
-    // Generic non-closed state
-    return '<span class="pay-status status-notclosed">Not Closed</span>';
-  }
-  return '<span class="pay-status status-due">⚠ Due</span>';
+  if (isClosed) return '<span class="pay-status status-due">⚠ Due</span>';
+  // Proposal/Overview sent = waiting on customer agreement
+  if (o.includes('proposal') || o.includes('overview')) return '<span class="pay-status status-followup">Awaiting Agreement</span>';
+  // Has a follow-up scheduled = still in play
+  if (followup && followup.trim()) return '<span class="pay-status status-followup">Needs Follow-Up</span>';
+  // Everything else that's not closed
+  return '<span class="pay-status status-notclosed">Not Closed</span>';
 }
 
 /* ── DEALS LOST ── */
