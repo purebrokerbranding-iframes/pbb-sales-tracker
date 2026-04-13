@@ -222,6 +222,27 @@
   .pay-status.status-na{background:rgba(163,176,179,0.06);color:rgba(163,176,179,0.4);font-style:italic;}
   .pay-status.status-notclosed{background:var(--orange-dim);color:var(--orange);}
   .pay-status.status-followup{background:rgba(251,191,36,0.1);color:#fbbf24;}
+  .dead-btn{background:none;border:1px solid var(--red-dim);color:var(--red);padding:3px 10px;border-radius:4px;font-size:.6rem;font-weight:700;text-transform:uppercase;letter-spacing:.5px;cursor:pointer;transition:all .2s;white-space:nowrap;}
+  .dead-btn:hover{background:var(--red-dim);color:#fff;}
+  .cash-table tr.row-dead td{opacity:.45;text-decoration:line-through;text-decoration-color:var(--red);}
+  .lost-section{background:var(--card-bg);border:1px solid rgba(248,113,113,0.15);border-radius:var(--radius-lg);padding:20px;position:relative;overflow:hidden;margin-top:14px;}
+  .lost-section::before{content:'';position:absolute;top:0;left:0;right:0;height:2px;background:linear-gradient(90deg,var(--red),var(--orange),var(--red));}
+  .lost-section h3{font-size:.72rem;text-transform:uppercase;letter-spacing:1.5px;color:var(--red);font-weight:700;margin-bottom:16px;display:flex;align-items:center;gap:8px;}
+  .lost-summary{display:grid;grid-template-columns:repeat(3,1fr);gap:14px;margin-bottom:16px;}
+  .lost-stat{background:rgba(10,24,27,0.6);border:1px solid rgba(248,113,113,0.1);border-radius:var(--radius);padding:14px;text-align:center;}
+  .lost-stat .cs-label{font-size:.6rem;text-transform:uppercase;letter-spacing:1px;color:var(--muted);margin-bottom:4px;}
+  .lost-stat .cs-value{font-size:1.4rem;font-weight:800;color:var(--red);}
+  .lost-stat .cs-sub{font-size:.65rem;color:var(--muted);margin-top:2px;}
+  .lost-table{width:100%;border-collapse:collapse;font-size:.73rem;}
+  .lost-table thead{position:sticky;top:0;z-index:2;}
+  .lost-table th{background:var(--dark4);color:var(--red);font-size:.58rem;text-transform:uppercase;letter-spacing:1.2px;padding:9px 10px;text-align:left;font-weight:700;border-bottom:2px solid rgba(248,113,113,0.15);white-space:nowrap;}
+  .lost-table td{padding:9px 10px;border-bottom:1px solid var(--card-border);white-space:nowrap;color:var(--muted);}
+  .lost-table tr:hover td{background:rgba(248,113,113,0.04);}
+  .lost-table .lost-name{color:var(--white);font-weight:600;}
+  .lost-table .lost-amt{color:var(--red);font-weight:700;}
+  .lost-reason{color:var(--orange);font-size:.65rem;}
+  .revive-btn{background:none;border:1px solid var(--teal-dim);color:var(--teal-light);padding:3px 10px;border-radius:4px;font-size:.6rem;font-weight:700;text-transform:uppercase;letter-spacing:.5px;cursor:pointer;transition:all .2s;white-space:nowrap;}
+  .revive-btn:hover{background:var(--teal-dim);color:#fff;}
   @keyframes alert-pulse{0%,100%{opacity:1;}50%{opacity:.5;}}
   .cash-amt{font-weight:700;color:var(--gold);font-size:.72rem;}
   .cash-date{font-size:.62rem;color:var(--muted);}
@@ -238,8 +259,8 @@
   .load-text{font-size:.72rem;color:var(--muted);text-transform:uppercase;letter-spacing:2px;}
 
   /* RESPONSIVE */
-  @media(max-width:1200px){.kpi-row{grid-template-columns:repeat(3,1fr);}.charts-row{grid-template-columns:1fr 1fr;}.charts-row-2{grid-template-columns:1fr;}.cash-summary{grid-template-columns:repeat(2,1fr);}}
-  @media(max-width:768px){.kpi-row{grid-template-columns:repeat(2,1fr);}.charts-row,.charts-row-2{grid-template-columns:1fr;}.filters-bar{flex-direction:column;align-items:stretch;}.filter-quick{margin-left:0;}.cash-summary{grid-template-columns:1fr;}}
+  @media(max-width:1200px){.kpi-row{grid-template-columns:repeat(3,1fr);}.charts-row{grid-template-columns:1fr 1fr;}.charts-row-2{grid-template-columns:1fr;}.cash-summary{grid-template-columns:repeat(2,1fr);}.lost-summary{grid-template-columns:repeat(3,1fr);}}
+  @media(max-width:768px){.kpi-row{grid-template-columns:repeat(2,1fr);}.charts-row,.charts-row-2{grid-template-columns:1fr;}.filters-bar{flex-direction:column;align-items:stretch;}.filter-quick{margin-left:0;}.cash-summary{grid-template-columns:1fr;}.lost-summary{grid-template-columns:1fr;}}
 </style>
 </head>
 <body>
@@ -405,9 +426,48 @@
               <th>Approval Status</th>
               <th>Final</th>
               <th>Final Status</th>
+              <th></th>
             </tr>
           </thead>
           <tbody id="cash-tbody"></tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- DEALS LOST -->
+    <div class="lost-section" id="lost-section" style="display:none;">
+      <h3>🚫 Deals Lost</h3>
+      <div class="lost-summary">
+        <div class="lost-stat">
+          <div class="cs-label">Deals Lost</div>
+          <div class="cs-value" id="lost-count">0</div>
+          <div class="cs-sub" id="lost-count-sub">—</div>
+        </div>
+        <div class="lost-stat">
+          <div class="cs-label">Revenue Lost</div>
+          <div class="cs-value" id="lost-revenue">$0</div>
+          <div class="cs-sub" id="lost-revenue-sub">—</div>
+        </div>
+        <div class="lost-stat">
+          <div class="cs-label">Avg Deal Size</div>
+          <div class="cs-value" id="lost-avg">$0</div>
+          <div class="cs-sub" id="lost-avg-sub">—</div>
+        </div>
+      </div>
+      <div class="cash-table-wrap">
+        <table class="lost-table">
+          <thead>
+            <tr>
+              <th>Client</th>
+              <th>Total Quoted</th>
+              <th>Outcome</th>
+              <th>Reason</th>
+              <th>Tier</th>
+              <th>Date</th>
+              <th></th>
+            </tr>
+          </thead>
+          <tbody id="lost-tbody"></tbody>
         </table>
       </div>
     </div>
@@ -490,6 +550,7 @@ let allRows = [];
 let filteredRows = [];
 let charts = {};
 let refreshTimer = null;
+let deadDeals = new Set();
 
 /* ═══ LOCK SCREEN ═══ */
 document.getElementById('lock-pin').addEventListener('input', function() {
@@ -617,6 +678,7 @@ document.querySelectorAll('.qf-btn').forEach(btn => {
 function renderAll() {
   renderKPIs();
   renderCashCollection();
+  renderDealsLost();
   renderActivityChart();
   renderOutcomesChart();
   renderTiersChart();
@@ -651,7 +713,7 @@ function renderKPIs() {
   const notProposal = ['reschedule','no show','not a fit','no interest'];
   const proposals = filteredRows.filter(r => { const o = (r['Outcome']||'').toLowerCase(); return !notProposal.some(np => o.includes(np)); }).length;
   const closed = filteredRows.filter(r => r['Outcome']?.toLowerCase().includes('closed') || r['Outcome']?.toLowerCase().includes('won')).length;
-  const revenue = filteredRows.reduce((sum, r) => sum + parseCurrency(r['Total Quoted'] || r['Amount Closed']), 0);
+  const revenue = filteredRows.filter(r => !isLostDeal(r)).reduce((sum, r) => sum + parseCurrency(r['Total Quoted'] || r['Amount Closed']), 0);
   const rate = total > 0 ? ((closed / total) * 100).toFixed(1) : 0;
   const avg = closed > 0 ? revenue / closed : 0;
 
@@ -669,10 +731,33 @@ function renderKPIs() {
   document.getElementById('kpi-avg-sub').textContent = closed > 0 ? 'Per closed deal' : '—';
 }
 
+function getDealId(r) {
+  return ((r['First Name']||'') + (r['Last Name']||'') + (r['Date']||'') + (r['Total Quoted']||'')).replace(/\s/g,'').toLowerCase();
+}
+
+function isLostDeal(r) {
+  const o = (r['Outcome'] || '').toLowerCase();
+  return deadDeals.has(getDealId(r)) || o.includes('not a fit') || o.includes('no interest') || o.includes('lost') || o.includes('dead');
+}
+
+function markDead(dealId) {
+  deadDeals.add(dealId);
+  renderCashCollection();
+  renderDealsLost();
+  renderKPIs();
+}
+
+function reviveDeal(dealId) {
+  deadDeals.delete(dealId);
+  renderCashCollection();
+  renderDealsLost();
+  renderKPIs();
+}
+
 /* ── CASH COLLECTION ── */
 function renderCashCollection() {
-  // Only show rows that have a Total Quoted value (actual deals)
-  const dealRows = filteredRows.filter(r => parseCurrency(r['Total Quoted']) > 0);
+  // Only show rows that have a Total Quoted value and are NOT dead
+  const dealRows = filteredRows.filter(r => parseCurrency(r['Total Quoted']) > 0 && !isLostDeal(r));
 
   let totalCollected = 0;
   let totalOutstanding = 0;
@@ -742,8 +827,9 @@ function renderCashCollection() {
       <td>${payBadge(app, appPaid, appDate, outcome, reason, followup)}</td>
       <td class="cash-amt">${fin > 0 ? fmtMoney(fin) : '<span style="color:var(--muted)">—</span>'}</td>
       <td>${payBadge(fin, finPaid, finDate, outcome, reason, followup)}</td>
+      <td><button class="dead-btn" onclick="markDead('${getDealId(r)}')">Mark Dead</button></td>
     </tr>`;
-  }).join('') || '<tr><td colspan="8" style="color:var(--muted);text-align:center;padding:20px;">No deals with quoted amounts</td></tr>';
+  }).join('') || '<tr><td colspan="9" style="color:var(--muted);text-align:center;padding:20px;">No deals with quoted amounts</td></tr>';
 }
 
 function isPaid(val) {
@@ -769,6 +855,51 @@ function payBadge(amount, paid, date, outcome, reason, followup) {
     return '<span class="pay-status status-notclosed">Not Closed</span>';
   }
   return '<span class="pay-status status-due">⚠ Due</span>';
+}
+
+/* ── DEALS LOST ── */
+function renderDealsLost() {
+  const lostRows = filteredRows.filter(r => parseCurrency(r['Total Quoted']) > 0 && isLostDeal(r));
+  const section = document.getElementById('lost-section');
+
+  if (lostRows.length === 0) { section.style.display = 'none'; return; }
+  section.style.display = 'block';
+
+  const totalLostRevenue = lostRows.reduce((sum, r) => sum + parseCurrency(r['Total Quoted']), 0);
+  const avgDeal = lostRows.length > 0 ? totalLostRevenue / lostRows.length : 0;
+
+  document.getElementById('lost-count').textContent = lostRows.length;
+  document.getElementById('lost-count-sub').textContent = 'from ' + filteredRows.length + ' total calls';
+  document.getElementById('lost-revenue').textContent = fmtMoney(totalLostRevenue);
+  document.getElementById('lost-revenue-sub').textContent = 'potential revenue lost';
+  document.getElementById('lost-avg').textContent = fmtMoney(avgDeal);
+  document.getElementById('lost-avg-sub').textContent = 'per lost deal';
+
+  const tbody = document.getElementById('lost-tbody');
+  const sorted = [...lostRows].sort((a, b) => {
+    const da = parseDate(a), db = parseDate(b);
+    if (!da) return 1; if (!db) return -1;
+    return db - da;
+  });
+
+  tbody.innerHTML = sorted.map(r => {
+    const name = ((r['First Name'] || '') + ' ' + (r['Last Name'] || '')).trim() || '—';
+    const totalQ = r['Total Quoted'] || '—';
+    const outcome = r['Outcome'] || '—';
+    const reason = r["Reasons Didn't Close"] || '—';
+    const tier = r['Tier Interest'] || '—';
+    const date = r['Date'] || '—';
+    const dealId = getDealId(r);
+    return `<tr>
+      <td class="lost-name">${name}</td>
+      <td class="lost-amt">${totalQ}</td>
+      <td><span class="outcome-tag ${outcomeClass(outcome)}">${outcome}</span></td>
+      <td class="lost-reason">${reason}</td>
+      <td><span class="tier-badge ${tierClass(tier)}">${tier}</span></td>
+      <td>${date}</td>
+      <td><button class="revive-btn" onclick="reviveDeal('${dealId}')">Revive</button></td>
+    </tr>`;
+  }).join('');
 }
 
 function isToday(d) {
@@ -838,7 +969,7 @@ function outcomeColor(o) {
 /* ── TIERS CHART ── */
 function renderTiersChart() {
   const map = {};
-  filteredRows.forEach(r => {
+  filteredRows.filter(r => !isLostDeal(r)).forEach(r => {
     const t = r['Tier Interest'] || 'No Tier';
     const rev = parseCurrency(r['Total Quoted'] || r['Amount Closed']);
     map[t] = (map[t]||0) + rev;
